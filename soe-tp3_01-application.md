@@ -11,7 +11,7 @@ Cabe destacar que el código provisto se encuentra en una **etapa inicial (esque
 ### 📄 `app.c` (Inicialización de la Aplicación)
 Este es el punto central de configuración del sistema de tareas.
 * **Variables de control globales:** Inicializa variables de diagnóstico como `g_app_cnt` (contador general), `g_task_idle_cnt` (contador de tiempo inactivo) y `g_app_stack_overflow_cnt` (contador de desbordamientos de pila).
-* **Función `app_init()`:** * Imprime en el log el nombre del TP (`seo-tp3_01-application: Producer-Consumer`).
+* **Función `app_init()`:** Imprime en el log el nombre del TP (`seo-tp3_01-application: Producer-Consumer`).
   * **Creación de Tareas:** Utiliza la función nativa de FreeRTOS `xTaskCreate` para dar de alta dos hilos de ejecución independientes: `task_a` (Task A) y `task_b` (Task B).
   * **Prioridades:** Ambas tareas se crean con la misma prioridad: `(tskIDLE_PRIORITY + 1ul)`. Al tener la misma prioridad, el planificador (*scheduler*) de FreeRTOS alternará su ejecución de manera equitativa (*Round Robin*) si ambas están listas para ejecutar.
   * **Manejo de errores:** Utiliza `configASSERT(pdPASS == ret)` para detener inmediatamente el microcontrolador si alguna tarea no pudo crearse por falta de memoria (*Heap*).
