@@ -47,3 +47,7 @@ Este archivo está destinado a configurar y manejar las interrupciones del hardw
 5. Como ambas tareas están bloqueadas, FreeRTOS le da el control a la **Tarea Idle** (Prioridad 0). El procesador se queda ejecutando `vApplicationIdleHook()` e incrementando el contador de tiempo ocioso.
 6. Cada 1 ms, el temporizador del sistema genera una interrupción, ejecuta `vApplicationTickHook()` e incrementa el contador de ticks de la app.
 7. Al cumplirse los 2500 ms, ambas tareas se despiertan y el ciclo se repite.
+
+---
+
+## Implementación y comportamiento observado:
