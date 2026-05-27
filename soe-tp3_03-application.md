@@ -55,3 +55,8 @@ Este archivo está destinado a configurar y manejar las interrupciones del hardw
 5. **Task Entry A** y **Task Exit A** se ejecutan alternadamente compartiendo el tiempo por *Round Robin*; incrementan sus respectivos contadores locales, imprimen su log en consola y se auto-bloquean por 2500 ms invocando `vTaskDelay`.
 6. En las ventanas de tiempo donde todas las tareas de la aplicación se encuentran simultáneamente en estado Bloqueado (*Blocked*), FreeRTOS le cede el control a la **Tarea Idle** (Prioridad 0). El procesador se queda ejecutando `vApplicationIdleHook()` e incrementando el contador de tiempo ocioso `g_task_idle_cnt`.
 7. Cada 1 milisegundo, el temporizador de hardware genera una interrupción física que ejecuta `vApplicationTickHook()` e incrementa `g_app_tick_cnt`. Al cumplirse la ventana de 2500 ms, las tareas de acceso se despiertan y el ciclo se repite.
+
+
+---
+
+## Implementación y comportamiento observado:
