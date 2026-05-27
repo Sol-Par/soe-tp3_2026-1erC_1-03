@@ -48,3 +48,8 @@ Este archivo está destinado a configurar y manejar las rutinas de interrupción
 5. Dado que tanto Task A como Task B se encuentran en estado Bloqueado (*Blocked*), FreeRTOS le cede el control del procesador a la **Tarea Idle** (Prioridad 0). El procesador se queda ejecutando en bucle la función `vApplicationIdleHook()`, lo que incrementa el contador de tiempo ocioso `g_task_idle_cnt`.
 6. Cada 1 ms, el temporizador de hardware interrumpe el flujo normal para procesar el Tick del sistema, disparando `vApplicationTickHook()` e incrementando `g_app_tick_cnt`.
 7. Al cumplirse la ventana de tiempo de 2500 ms, ambas tareas despiertan de forma simultánea pasando a estado Listo, y el ciclo de alternancia vuelve a repetirse indefinidamente.
+
+
+---
+
+## Implementación y comportamiento observado:
