@@ -8,7 +8,7 @@ Cabe destacar que el código provisto se encuentra en una **etapa inicial (esque
 
 ## 1. Análisis por Archivo (.c)
 
-### `app.c` (Inicialización de la Aplicación)
+### 📄 `app.c` (Inicialización de la Aplicación)
 Este es el punto central de configuración del sistema de tareas.
 * **Variables de control globales:** Inicializa variables de diagnóstico como `g_app_cnt` (contador general), `g_task_idle_cnt` (contador de tiempo inactivo) y `g_app_stack_overflow_cnt` (contador de desbordamientos de pila).
 * **Función `app_init()`:** * Imprime en el log el nombre del TP (`seo-tp3_01-application: Producer-Consumer`).
@@ -17,7 +17,7 @@ Este es el punto central de configuración del sistema de tareas.
   * **Manejo de errores:** Utiliza `configASSERT(pdPASS == ret)` para detener inmediatamente el microcontrolador si alguna tarea no pudo crearse por falta de memoria (*Heap*).
   * Inicializa las interrupciones de la app (`app_it_init()`) y un contador de ciclos de hardware (`cycle_counter_init()`).
 
-### `task_a.c` y `task_b.c` (Las Tareas)
+### 📄 `task_a.c` y `task_b.c` (Las Tareas)
 Ambos archivos tienen una estructura prácticamente idéntica en este momento. Representan a los actores del sistema (que idealmente serán el Productor y el Consumidor).
 * **Estructura:** Ambas funciones contienen un bucle infinito (`for (;;)`), que es el estándar para tareas en sistemas embebidos operados por RTOS.
 * **Comportamiento actual:**
@@ -38,7 +38,7 @@ Este archivo está destinado a configurar y manejar las interrupciones del hardw
 
 ---
 
-## 🛠️ 2. Resumen del Flujo de Ejecución Actual
+## 2. Resumen del Flujo de Ejecución Actual
 
 1. El sistema arranca, se llama a `app_init()`, y se registran **Task A** y **Task B**.
 2. El planificador de FreeRTOS toma el control. Como ambas tareas tienen prioridad 1, arranca una de ellas (por ejemplo, Task A).
