@@ -53,3 +53,37 @@ Este archivo está destinado a configurar y manejar las rutinas de interrupción
 ---
 
 ## Implementación y comportamiento observado:
+
+Se instanciaron tres primitivas de FreeRTOS para gestionar el acceso a los recursos compartidos:
+
+| Variable / Handle | Primitiva FreeRTOS | Función en el Patrón |
+| :--- | :--- | :--- |
+| **`h_lectores_mutex`** | `Mutex` | Protege el incremento y decremento de la variable global `readers`. |
+| **`h_habitacion_disponible_bin_sem`** | `Semáforo Binario` | Protege la sección crítica ("la sala"). Se usa un semáforo binario porque la tarea que lo toma (primer lector) puede no ser la que lo libere (último lector). |
+| **`h_molinete_mutex`** | `Mutex` | Actúa como "Molinete". Los escritores lo bloquean para impedir el ingreso de nuevos lectores, asegurando su turno una vez que la sala se vacíe. |
+
+## Resumen de Cambios por Archivo:
+
+### `main.c` (Arranque del Sistema)
+* **Eliminación de la Tarea por Defecto:** Se comentó la creación y definición del `defaultTask` generado automáticamente por las herramientas de configuración para liberar recursos de memoria.
+* **Inyección de la Aplicación:** Se incluyó `app.h` y se agregó el llamado a `app_init()` justo antes de iniciar el *Scheduler* (`vTaskStartScheduler()`), transfiriendo el control de arranque a la aplicación de usuario.
+
+### `app.c` (Configuración e Instanciación)
+* **Variables Globales:** Se declararon las variables de sincronización (`h_lectores_mutex`, `h_habitacion_disponible_bin_sem`, `h_molinete_mutex`) y el contador `readers` (inicializado en 0).
+* **Inicialización:** Dentro de `app_init()`, se crearon los semáforos y mutexes, liberando inicialmente `h_habitacion_disponible_bin_sem` con `xSemaphoreGive()` para permitir el primer acceso.
+* **Múltiples Instancias:** En lugar de una sola tarea, se utilizó `xTaskCreate` para instanciar múltiples escritores (basados en `task_a`) y lectores (basados en `task_b`). Se inyectaron cadenas de texto (ej. `"Escritor 1"`, `"Lector 2"`) a través del parámetro `pvParameters` para identificar cada instancia de forma única.
+
+### `task_a.c` (Lógica del Escritor)
+* **Recepción de Parámetros:** Se modificó la tarea para castear `pvParameters` a un `char*` y así obtener el nombre de la instancia.
+* **Lógica de Acceso:** 1. Toma `h_molinete_mutex` (bloqueando a nuevos lectores).
+  2. Toma `h_habitacion_disponible_bin_sem` (esperando a que salgan los lectores actuales).
+  3. Ejecuta la sección crítica (escritura exclusiva).
+  4. Libera `h_molinete_mutex` y `h_lectores_mutex`.
+
+### `task_b.c` (Lógica del Lector)
+* **Recepción de Parámetros:** Al igual que en `task_a`, se adaptó para leer su identificador.
+* **Lógica de Acceso (Patrón Lightswitch):**
+  1. Toma y libera inmediatamente `h_molinete_mutex` (pasa por el molinete, frenándose solo si hay un escritor esperando).
+  2. Toma `h_lectores_mutex` para incrementar `readers`. Si es el primer lector (`readers == 1`), toma `h_habitacion_disponible_bin_sem` para bloquear a los escritores. Libera `h_lectores_mutex`.
+  3. Ejecuta la sección crítica (lectura concurrente).
+  4. Toma `h_lectores_mutex` para decrementar `readers`. Si es el último lector (`readers == 0`), libera `h_habitacion_disponible_bin_sem` para permitir la entrada de escritores. Libera `h_lectores_mutex`.
