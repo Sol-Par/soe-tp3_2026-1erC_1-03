@@ -71,6 +71,8 @@ void task_a(void *parameters)
 	/*  Declare & Initialize Task Function variables */
 	g_task_a_cnt = G_TASK_A_CNT_INI;
 
+	char *nombre = (char *)parameters;
+
 	/* Print out: Task Initialized */
 	LOGGER_INFO(" ");
 	LOGGER_INFO("  %s is running - Tick [mS] = %lu", pcTaskGetName(NULL), xTaskGetTickCount());
@@ -89,7 +91,7 @@ void task_a(void *parameters)
 
 		// taskENTER_CRITICAL();
 
-		LOGGER_INFO("Writer: Escribiendo datos de forma exclusiva...");
+		LOGGER_INFO("%s: Escribiendo datos de forma exclusiva...", nombre);
 		vTaskDelay(pdMS_TO_TICKS(1000));
 
 		// taskEXIT_CRITICAL();

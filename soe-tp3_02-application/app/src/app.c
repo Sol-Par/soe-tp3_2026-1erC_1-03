@@ -128,14 +128,30 @@ void app_init(void)
 	xSemaphoreGive(h_habitacion_disponible_bin_sem);
 
 
+	static const char *w1 = "Escritor 1";
+	static const char *w2 = "Escritor 2";
+	static const char *r1 = "Lector 1";
+	static const char *r2 = "Lector 2";
+	static const char *r3 = "Lector 3";
+
 	/* Add threads, ... */
     BaseType_t ret;
 
     /* Task A thread at priority 1 */
     ret = xTaskCreate(task_a,							/* Pointer to the function thats implement the task. */
-					  "Escritor",							/* Text name for the task. This is to facilitate debugging only. */
+					  "Escritor 1",							/* Text name for the task. This is to facilitate debugging only. */
 					  (configMINIMAL_STACK_SIZE),		/* Stack depth in words. */
-					  NULL,								/* We are not using the task parameter. */
+					  (void*)w1,								/* We are not using the task parameter. */
+					  (tskIDLE_PRIORITY + 1ul),			/* This task will run at priority 1. */
+					  &h_task_a);						/* We are using a variable as task handle. */
+
+    /* Check the thread was created successfully. */
+    configASSERT(pdPASS == ret);
+
+    ret = xTaskCreate(task_a,							/* Pointer to the function thats implement the task. */
+					  "Escritor 2",							/* Text name for the task. This is to facilitate debugging only. */
+					  (configMINIMAL_STACK_SIZE),		/* Stack depth in words. */
+					  (void*)w2,								/* We are not using the task parameter. */
 					  (tskIDLE_PRIORITY + 1ul),			/* This task will run at priority 1. */
 					  &h_task_a);						/* We are using a variable as task handle. */
 
@@ -144,14 +160,26 @@ void app_init(void)
 
     /* Task B thread at priority 1 */
     ret = xTaskCreate(task_b,							/* Pointer to the function thats implement the task. */
-					  "Lector",							/* Text name for the task. This is to facilitate debugging only. */
+					  "Lector 1",							/* Text name for the task. This is to facilitate debugging only. */
 					  (configMINIMAL_STACK_SIZE),		/* Stack depth in words. */
-					  NULL,								/* We are not using the task parameter. */
+					  (void*)r1,								/* We are not using the task parameter. */
 					  (tskIDLE_PRIORITY + 1ul),			/* This task will run at priority 1. */
 					  &h_task_b);						/* We are using a variable as task handle. */
 
     /* Check the thread was created successfully. */
     configASSERT(pdPASS == ret);
+
+    /* Task B thread at priority 1 */
+    ret = xTaskCreate(task_b,							/* Pointer to the function thats implement the task. */
+					  "Lector 2",							/* Text name for the task. This is to facilitate debugging only. */
+					  (configMINIMAL_STACK_SIZE),		/* Stack depth in words. */
+					  (void*)r2,								/* We are not using the task parameter. */
+					  (tskIDLE_PRIORITY + 1ul),			/* This task will run at priority 1. */
+					  &h_task_b);						/* We are using a variable as task handle. */
+
+    /* Check the thread was created successfully. */
+    configASSERT(pdPASS == ret);
+
 
     /* Total amount of heap space that remains unallocated. Is also available
      * with xFreeBytesRemaining variable for heap management schemes 2 to 5.

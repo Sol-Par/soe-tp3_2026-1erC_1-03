@@ -73,6 +73,8 @@ void task_b(void *parameters)
 	/*  Declare & Initialize Task Function variables */
 	g_task_b_cnt = G_TASK_B_CNT_INI;
 
+	char *nombre = (char *)parameters;
+
 	/* Print out: Task Initialized */
 	LOGGER_INFO(" ");
 	LOGGER_INFO("  %s is running - Tick [mS] = %lu", pcTaskGetName(NULL), xTaskGetTickCount());
@@ -96,7 +98,7 @@ void task_b(void *parameters)
 		xSemaphoreGive(h_lectores_mutex);
 
 		/* ---> INICIO SECCIÓN CRÍTICA <--- */
-		LOGGER_INFO("Reader: Leyendo datos... (Lectores activos: %lu)", readers);
+		LOGGER_INFO("%s: Leyendo datos... (Lectores activos: %lu)", nombre, readers);
 		vTaskDelay(pdMS_TO_TICKS(500));
 		/* ---> FIN SECCIÓN CRÍTICA <--- */
 
@@ -107,11 +109,6 @@ void task_b(void *parameters)
 				xSemaphoreGive(h_habitacion_disponible_bin_sem);
 			}
 		xSemaphoreGive(h_lectores_mutex);
-
-
-    	/* We want this task to execute every 2500 milliseconds. */
-		LOGGER_INFO(p_task_b_wait_2500mS);
-		vTaskDelay(TASK_B_DEL_MAX);
 	}
 }
 
