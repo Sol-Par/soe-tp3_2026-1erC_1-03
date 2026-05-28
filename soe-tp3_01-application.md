@@ -50,4 +50,59 @@ Este archivo está destinado a configurar y manejar las interrupciones del hardw
 
 ---
 
-## Implementación y comportamiento observado:
+## Implementación del esquema Productor-Consumidor y comportamiento observado:
+
+- Comenzamos eliminando la creación de la tarea `defaultTask` y llamando a `app_init()` para que se creen correctamente las tareas A (productora) y B (consumidora).
+- Creamos todos los recursos de la aplicación: cola `h_buffer_queue` (recurso compartido o buffer), semáforos binarios `h_spaces_bin_sem` y `h_items_bin_sem`, y mutex `h_buffer_mutex`.
+- Agregamos la lógica de la tarea productora de acuerdo a la solución presentada en "The Little Book of Semaphores", produciendo 5 datos aleatorios:
+```
+/* Esperar espacio. */
+xSemaphoreTake(h_spaces_bin_sem, portMAX_DELAY);
+
+/* Tomar el mutex. */
+xSemaphoreTake(h_buffer_mutex, portMAX_DELAY);
+
+/* Producir 5 números aleatorios. */
+for (int i = 0; i < 5; i++) {
+	dato = (uint16_t)(rand() % 65536);
+	xQueueSend(h_buffer_queue, &dato, 0);
+}
+
+/* Avisar que hay items por procesar. */
+xSemaphoreGive(h_items_bin_sem);
+
+LOGGER_INFO("\n");
+LOGGER_INFO("PRODUCER - Datos enviados exitósamente a la cola.");
+
+/* Liberar el mutex. */
+xSemaphoreGive(h_buffer_mutex);
+
+/* Ejecutar (producir) cada 'TASK_A_DEL_MAX' milisegundos. */
+vTaskDelay(TASK_A_DEL_MAX);
+```
+- Agregamos la lógica de la tarea consumidora de acuerdo a la solución presentada en "The Little Book of Semaphores", leyendo los datos hasta vaciar el buffer:
+```
+/* Esperar items. */
+xSemaphoreTake(h_items_bin_sem, portMAX_DELAY);
+
+/* Tomar el mutex. */
+xSemaphoreTake(h_buffer_mutex, portMAX_DELAY);
+
+/* Consumir datos hasta vaciar la cola. */
+while (xQueueReceive(h_buffer_queue, &dato_recibido, 0) == pdTRUE)
+{
+    LOGGER_INFO("CONSUMER - Recibido: %u", dato_recibido);
+}
+
+LOGGER_INFO("CONSUMER - Cola vaciada.");
+
+/* Liberar el mutex. */
+xSemaphoreGive(h_buffer_mutex);
+
+/* Avisar que hay espacio. */
+xSemaphoreGive(h_spaces_bin_sem);
+```
+
+<br>
+
+Como cada tarea toma el mutex antes de acceder al recurso compartido (buffer), nos aseguramos de que no haya conflicto en el acceso, produciéndose tanto la producción/escritura como el consumo/lectura correctamente. Además, con la presencia de los semáforos binarios `spaces` e `items`, logramos que ambas tareas se sincronizen correctamente. En conclusión, el comportamiento de la aplicación básica es el esperado y soluciona el problema o escenario Productor-Consumidor.
