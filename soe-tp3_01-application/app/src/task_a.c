@@ -32,10 +32,16 @@
  * @author : Juan Manuel Cruz <jcruz@fi.uba.ar> <jcruz@frba.utn.edu.ar>
  */
 
+// TAREA PRODUCTORA.
+
 /********************** inclusions *******************************************/
 /* Project includes */
 #include "main.h"
 #include "cmsis_os.h"
+
+/* Other includes */
+#include <stdlib.h>
+#include <stdint.h>
 
 /* Demo includes */
 #include "logger.h"
@@ -60,6 +66,7 @@ const char *p_task_a_wait_2500mS		= "   ==> Task A       - Wait:   2500mS";
 
 /********************** external data declaration ****************************/
 uint32_t g_task_a_cnt;
+uint16_t dato;
 
 /********************** external functions definition ************************/
 /* Task thread */
@@ -78,8 +85,28 @@ void task_a(void *parameters)
 		/* Update Task Counter */
 		g_task_a_cnt++;
 
-    	/* We want this task to execute every 2500 milliseconds. */
-		LOGGER_INFO(p_task_a_wait_2500mS);
+		/* Esperar espacio. */
+		xSemaphoreTake(h_spaces_bin_sem, portMAX_DELAY);
+
+		/* Tomar el mutex. */
+		xSemaphoreTake(h_buffer_mutex, portMAX_DELAY);
+
+		/* Producir 5 números aleatorios. */
+		for (int i = 0; i < 5; i++) {
+			dato = (uint16_t)(rand() % 65536);
+			xQueueSend(h_buffer_queue, &dato, 0);
+		}
+
+		/* Avisar que hay items por procesar. */
+		xSemaphoreGive(h_items_bin_sem);
+
+		LOGGER_INFO("\n");
+		LOGGER_INFO("PRODUCER - Datos enviados exitósamente a la cola.");
+
+		/* Liberar el mutex. */
+		xSemaphoreGive(h_buffer_mutex);
+
+		/* Ejecutar (producir) cada 'TASK_A_DEL_MAX' milisegundos. */
 		vTaskDelay(TASK_A_DEL_MAX);
 	}
 }

@@ -32,6 +32,8 @@
  * @author : Juan Manuel Cruz <jcruz@fi.uba.ar> <jcruz@frba.utn.edu.ar>
  */
 
+// TAREA CONSUMIDORA.
+
 /********************** inclusions *******************************************/
 /* Project includes */
 #include "main.h"
@@ -60,6 +62,7 @@ const char *p_task_b_wait_2500mS		= "   ==> Task B       - Wait:   2500mS";
 
 /********************** external data declaration ****************************/
 uint32_t g_task_b_cnt;
+uint16_t dato_recibido;
 
 /********************** external functions definition ************************/
 /* Task thread */
@@ -78,9 +81,25 @@ void task_b(void *parameters)
 		/* Update Task Counter */
 		g_task_b_cnt++;
 
-    	/* We want this task to execute every 2500 milliseconds. */
-		LOGGER_INFO(p_task_b_wait_2500mS);
-		vTaskDelay(TASK_B_DEL_MAX);
+		/* Esperar items. */
+		xSemaphoreTake(h_items_bin_sem, portMAX_DELAY);
+
+		/* Tomar el mutex. */
+		xSemaphoreTake(h_buffer_mutex, portMAX_DELAY);
+
+		/* Consumir datos hasta vaciar la cola. */
+		while (xQueueReceive(h_buffer_queue, &dato_recibido, 0) == pdTRUE)
+		{
+		    LOGGER_INFO("CONSUMER - Recibido: %u", dato_recibido);
+		}
+
+		LOGGER_INFO("CONSUMER - Cola vaciada.");
+
+		/* Liberar el mutex. */
+		xSemaphoreGive(h_buffer_mutex);
+
+		/* Avisar que hay espacio. */
+		xSemaphoreGive(h_spaces_bin_sem);
 	}
 }
 

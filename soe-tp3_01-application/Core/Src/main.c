@@ -22,7 +22,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stdio.h"
+/* Demo includes. */
+#include "logger.h"
+#include "dwt.h"
+
+/* Application includes. */
+#include "app.h"
 
 /* USER CODE END Includes */
 
@@ -116,10 +121,8 @@ int main(void)
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
-  /* Create the thread(s) */
-  /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 128);
-  defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
+  /* add application, ... */
+  app_init();
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */

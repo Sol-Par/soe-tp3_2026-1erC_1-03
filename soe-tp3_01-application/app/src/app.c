@@ -78,10 +78,15 @@ uint32_t g_app_stack_overflow_cnt;
 uint32_t g_tasks_cnt;
 
 /* Declare a variable of type QueueHandle_t. This is used to reference queues*/
+QueueHandle_t h_buffer_queue;
 
 /* Declare a variable of type SemaphoreHandle_t (binary or counting) or mutex.
  * This is used to reference the semaphore that is used to synchronize a thread
  * with other thread or to ensure mutual exclusive access to...*/
+SemaphoreHandle_t h_spaces_bin_sem;
+SemaphoreHandle_t h_items_bin_sem;
+
+SemaphoreHandle_t h_buffer_mutex;
 
 /* Declare a variable of type TaskHandle_t. This is used to reference threads. */
 TaskHandle_t h_task_a;
@@ -115,12 +120,37 @@ void app_init(void)
      *
      * Add queue or semaphore (binary or counting) or mutex to registry. */
 
+	h_buffer_queue = xQueueCreate(5, sizeof(uint16_t));
+	configASSERT(h_buffer_queue != NULL);
+
+	h_spaces_bin_sem = xSemaphoreCreateBinary();
+	configASSERT(h_spaces_bin_sem != NULL);
+
+	h_items_bin_sem = xSemaphoreCreateBinary();
+	configASSERT(h_items_bin_sem != NULL);
+
+	h_buffer_mutex = xSemaphoreCreateMutex();
+	configASSERT(h_buffer_mutex != NULL);
+
+	vQueueAddToRegistry(h_buffer_queue, "Buffer queue.");
+	vQueueAddToRegistry(h_spaces_bin_sem, "Spaces binary semaphore.");
+	vQueueAddToRegistry(h_items_bin_sem, "Items binary semaphore.");
+	vQueueAddToRegistry(h_buffer_mutex, "Buffer access mutex.");
+
+	LOGGER_INFO("Recursos inicializados correctamente.");
+
+	/* El semáforo de espacios debe comenzar en verde. */
+	xSemaphoreGive(h_spaces_bin_sem);
+
+	/* El mutex debe comenzar en verde. */
+	xSemaphoreGive(h_buffer_mutex);
+
 	/* Add threads, ... */
     BaseType_t ret;
 
     /* Task A thread at priority 1 */
     ret = xTaskCreate(task_a,							/* Pointer to the function thats implement the task. */
-					  "Task A",							/* Text name for the task. This is to facilitate debugging only. */
+					  "Producer Task",					/* Text name for the task. This is to facilitate debugging only. */
 					  (configMINIMAL_STACK_SIZE),		/* Stack depth in words. */
 					  NULL,								/* We are not using the task parameter. */
 					  (tskIDLE_PRIORITY + 1ul),			/* This task will run at priority 1. */
@@ -131,7 +161,7 @@ void app_init(void)
 
     /* Task B thread at priority 1 */
     ret = xTaskCreate(task_b,							/* Pointer to the function thats implement the task. */
-					  "Task B",							/* Text name for the task. This is to facilitate debugging only. */
+					  "Consumer Task",					/* Text name for the task. This is to facilitate debugging only. */
 					  (configMINIMAL_STACK_SIZE),		/* Stack depth in words. */
 					  NULL,								/* We are not using the task parameter. */
 					  (tskIDLE_PRIORITY + 1ul),			/* This task will run at priority 1. */
